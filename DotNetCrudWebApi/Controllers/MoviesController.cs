@@ -1,4 +1,5 @@
 ﻿using DotNetCrudWebApi.Data;
+using DotNetCrudWebApi.Events;
 using DotNetCrudWebApi.Movies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -55,28 +56,9 @@ namespace DotNetCrudWebApi.Controllers
 
         // Put : api/Movies/2
         [HttpPut]
-        public async Task<ActionResult<MovieModel>> PutMovie(int id, MovieModel movie)
+        public async Task<ActionResult<MovieModel>> PutMovie([FromServices] EventCreator eventCreator , int id, MovieModel movie)
         {
-            if (id != movie.Id)
-            {
-                return BadRequest();
-            }
-            _appDbContext.Entry(movie).State = EntityState.Modified;
-            try
-            {
-                await _appDbContext.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MovieExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            eventCreator.CreateAddedEvent(movie);
             return NoContent();
         }
 
